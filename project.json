@@ -1,10 +1,10 @@
 {
   "name": "Household",
   "repo": "household",
-  "purpose": "Home admin tools, to be built over time; nothing built yet.",
+  "purpose": "Week view of household jobs, cleaning-zone rotation, bins and groceries; data lives in its own Google Sheet.",
   "family": "Home",
-  "stage": "Idea",
-  "live": null,
+  "stage": "Building",
+  "live": "https://jcm-book-library.github.io/household/",
   "tags": [],
-  "updated": "2026-10-19"
+  "updated": "2026-10-23"
 }

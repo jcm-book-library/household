@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#15141c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Household">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- Built from app.html by tools/build-pages.py. Edit app.html, not this file. -->
+<title>Household</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Household: week view, cleaning zones, groceries and jobs. Dark-only, same family as The Brain. */
+:root{
+  --bg:#15141c; --surface:#1d1b27; --raise:#272435; --line:#34304a;
+  --fg:#f1effa; --muted:#a39fbd; --accent:#a99cff; --accent-ink:#15141c; --danger:#ff7a7a; --ok:#7bc98f; --warn:#f2c35c; --home:#5fc8c2;
+  --bin-red:#ff7a7a; --bin-yellow:#f2c35c; --bin-green:#7bc98f; --bin-purple:#c39cf0; --bin-none:#a39fbd;
+  --display:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--fg);font:15px/1.5 var(--body);margin:0;font-variant-numeric:tabular-nums}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+h1,h2,h3,.num{font-family:var(--display)}
+h1{font-size:clamp(24px,3.4vw,30px);font-weight:700;letter-spacing:-.02em;margin:0}
+h2{font-size:17px;font-weight:700;margin:0;letter-spacing:-.01em}
+h3{font-size:14px;margin:0}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+button{font:inherit;cursor:pointer;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--raise);color:var(--fg);border-radius:8px;padding:7px 12px;font-weight:600;font-size:13px;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn-ghost{background:transparent}
+.btn:disabled{opacity:.5;cursor:default}
+.btn-danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line));background:transparent}
+.btn-sm{padding:3px 10px;font-size:12px}
+.iconbtn{border:0;background:transparent;color:var(--muted);padding:4px 6px;border-radius:6px;line-height:1}
+.iconbtn:hover{color:var(--fg);background:var(--raise)}
+.linkish{border:0;background:transparent;color:var(--fg);padding:0;font:inherit;font-weight:600;text-align:left;cursor:pointer}
+.linkish:hover{color:var(--accent)}
+input,select,textarea{font:inherit;font-size:14px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;margin:0;flex:none;padding:0}
+
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.lockup{display:flex;align-items:center;gap:10px}
+.mark{width:36px;height:36px;flex:none}
+.status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.status[data-state=live] .dot{background:var(--ok)}
+.status[data-state=error] .dot{background:var(--danger)}
+.status[data-state=loading] .dot{background:var(--accent);animation:pulse 1s infinite alternate}
+@keyframes pulse{to{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.status[data-state=loading] .dot{animation:none}}
+.notice{background:var(--raise);border:1px solid var(--line);border-left:3px solid var(--accent);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:14px;overflow-wrap:anywhere}
+.notice[data-kind=error]{border-left-color:var(--danger)}
+.banner{background:color-mix(in srgb,var(--warn) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 45%,var(--line));color:var(--fg);padding:8px 14px;border-radius:8px;margin-bottom:14px;font-size:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.banner[hidden],.notice[hidden],#gate[hidden]{display:none}
+
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:16px;width:max-content;max-width:100%;overflow-x:auto}
+.tab{border:0;background:transparent;color:var(--muted);border-radius:8px;padding:7px 14px;font-weight:600;font-size:14px;white-space:nowrap}
+.tab[aria-selected=true]{background:color-mix(in srgb,var(--accent) 22%,var(--surface));color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
+body[data-gate] .tabs,body[data-gate] main{display:none}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.panel + .panel{margin-top:16px}
+.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+.empty{font-size:14px;color:var(--muted);padding:8px 0;margin:0}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.bad{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 50%,var(--line))}
+.tag.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 50%,var(--line))}
+.tag.good{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 50%,var(--line))}
+.tag.acc{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+
+/* week */
+.weekbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.weekbar .nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.navlabel{text-align:center;white-space:nowrap;min-width:11em}
+.strip{margin-bottom:14px}
+.sgroup{margin-top:10px}
+.sgroup:first-of-type{margin-top:0}
+.sgroup > .eyebrow{margin-bottom:4px;display:block}
+.sgroup[data-kind=overdue]{border-left:3px solid var(--danger);padding-left:10px}
+.sgroup[data-kind=overdue] > .eyebrow{color:var(--danger)}
+.srows{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px}
+.srow{display:flex;align-items:center;gap:8px;background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-width:0;cursor:pointer}
+.srow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .meta{font-size:12px;color:var(--muted);white-space:nowrap}
+.srow[data-done=true] .nm{text-decoration:line-through;color:var(--muted)}
+.clear{color:var(--ok);font-weight:600;margin:0}
+
+.days{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+@media (min-width:700px){.days{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1100px){.days{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.dcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0;display:flex;flex-direction:column;gap:7px}
+.dcard[data-past=true]{opacity:.62}
+.dcard[data-today=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.dcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.dcard-h h3{font-size:15px}
+.dcard-h .w{font-size:12px;color:var(--muted);white-space:nowrap}
+.dline{display:flex;align-items:center;gap:8px;min-width:0;font-size:14px}
+.dline .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dline .meta{font-size:12px;color:var(--muted);white-space:nowrap}
+.dline[data-done=true] .nm,.dline[data-done=true] .linkish{text-decoration:line-through;color:var(--muted)}
+.dline[data-muted=true]{color:var(--muted)}
+.dline[data-muted=true] .nm{font-style:italic}
+.dline .linkish{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bins{display:flex;flex-wrap:wrap;gap:6px}
+.bin{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border-radius:999px;padding:2px 10px 2px 7px;font-size:12px;font-weight:700;cursor:pointer;max-width:100%}
+.bin span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.bin[data-done=true] span{text-decoration:line-through;opacity:.7}
+.bin[data-muted=true]{opacity:.55}
+.bin[data-c=red]{--c:var(--bin-red)} .bin[data-c=yellow]{--c:var(--bin-yellow)} .bin[data-c=green]{--c:var(--bin-green)} .bin[data-c=purple]{--c:var(--bin-purple)} .bin[data-c=none]{--c:var(--bin-none)}
+.shopline{border:0;background:color-mix(in srgb,var(--home) 12%,var(--raise));border:1px solid color-mix(in srgb,var(--home) 35%,var(--line));border-radius:8px;padding:5px 10px;text-align:left;font-size:13px;font-weight:600;width:100%}
+.shopline:hover{border-color:var(--home)}
+.dfoot{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px;margin-top:auto}
+.dfree{font-size:13px;color:var(--muted)}
+
+/* zones */
+.queue{list-style:none;margin:0;padding:0;counter-reset:q}
+.queue li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent);min-width:0}
+.queue li:first-child{border-top:0}
+.queue li::before{counter-increment:q;content:counter(q);font-family:var(--display);font-weight:700;width:26px;height:26px;border-radius:50%;background:var(--raise);border:1px solid var(--line);display:grid;place-items:center;font-size:12px;flex:none}
+.qmain{flex:1;min-width:0}
+.qmain .sub{font-size:13px;color:var(--muted)}
+details.paused{margin-top:14px}
+details.paused summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:600}
+
+/* groceries */
+.shopcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.shopcols{grid-template-columns:minmax(0,1fr)}}
+.shopcols .panel + .panel{margin-top:0}
+.glist{list-style:none;margin:0;padding:0}
+.gitem{display:flex;align-items:center;gap:10px;padding:7px 2px;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent);min-width:0}
+.gitem:first-child{border-top:0}
+.gitem label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+.gitem .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gitem .sub{font-size:12px;color:var(--muted);white-space:nowrap}
+.addrow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.addrow input{flex:1 1 200px}
+.addrow select{flex:0 1 120px}
+.warn-box{background:color-mix(in srgb,var(--warn) 12%,var(--raise));border:1px solid color-mix(in srgb,var(--warn) 45%,var(--line));border-radius:8px;padding:6px 10px;font-size:13px;margin-bottom:8px}
+
+/* jobs */
+.agroup{margin-top:16px}
+.agroup:first-child{margin-top:0}
+.ahead{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:700;color:var(--muted);margin:0 0 2px}
+.jrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent);align-items:center}
+.jrow:first-of-type{border-top:0}
+.jmain{min-width:0}
+.jmain .sched{font-size:13px;color:var(--muted)}
+.jmeta{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+@media (max-width:600px){.jrow{grid-template-columns:minmax(0,1fr)}.jmeta{justify-content:flex-start}}
+
+dialog{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:16px;padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
+dialog::backdrop{background:rgba(8,6,14,.65)}
+dialog form,dialog .dbody{padding:18px;display:flex;flex-direction:column;gap:12px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label,.field .lab{font-size:12px;color:var(--muted);font-weight:600}
+.field.w2{grid-column:1/-1}
+.field textarea{min-height:110px;resize:vertical}
+.field .help{font-size:12px;color:var(--muted)}
+.checks{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
+.checks label{display:flex;gap:6px;align-items:center}
+.dlg-acts{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.dlg-acts div{display:flex;gap:8px;flex-wrap:wrap}
+.preview{font-size:13px;color:var(--accent);margin:0}
+.msg{font-size:13px;color:var(--danger);margin:0;min-height:0}
+.msg:empty{display:none}
+.cl{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto}
+.cl label{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.cl label input{margin-top:3px}
+.cl label:has(input:checked) span{text-decoration:line-through;color:var(--muted)}
+.plist{margin:0;padding-left:18px;max-height:44vh;overflow:auto;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:9px 16px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.4);z-index:10;max-width:calc(100vw - 32px);display:flex;gap:10px;align-items:center}
+.toast[hidden]{display:none}
+@media (max-width:520px){.fields{grid-template-columns:minmax(0,1fr)}}
+</style>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="lockup">
+      <svg class="mark" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="9" fill="#272435"/><path d="M7.5 17.5 18 8l10.5 9.5" fill="none" stroke="#5fc8c2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="10.5" y="17" width="15" height="10.5" rx="1" fill="none" stroke="#5fc8c2" stroke-width="2.6" stroke-linejoin="round"/><rect x="16.2" y="20.5" width="3.6" height="7" rx="1" fill="#f2c35c"/></svg>
+      <div><div class="eyebrow" id="todayLabel"></div><h1>Household</h1></div>
+    </div>
+    <div class="status" id="status" data-state="loading"><span class="dot"></span><span id="statusText">Starting…</span>
+      <button class="btn" id="refreshBtn" type="button">Refresh</button>
+      <button class="btn btn-ghost" id="settingsBtn" type="button">Settings</button>
+    </div>
+  </div>
+  <div id="demoBanner" class="banner" hidden><span><b>Demo:</b> sample data, nothing is saved.</span><a class="btn btn-sm" href="?" id="exitDemo" style="text-decoration:none">Exit demo</a></div>
+  <div id="notice" class="notice" hidden></div>
+  <div id="gate" class="panel" hidden></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="week" aria-selected="true">Week</button>
+    <button class="tab" role="tab" data-tab="zones" aria-selected="false">Zones</button>
+    <button class="tab" role="tab" data-tab="groceries" aria-selected="false">Groceries</button>
+    <button class="tab" role="tab" data-tab="jobs" aria-selected="false">Jobs</button>
+  </div>
+
+  <main id="main">
+    <section id="v-week">
+      <div class="weekbar">
+        <div class="nav">
+          <button class="btn" id="prevWk" type="button" aria-label="Previous week">‹</button>
+          <h2 id="weekTitle" class="navlabel"></h2>
+          <button class="btn" id="nextWk" type="button" aria-label="Next week">›</button>
+          <button class="btn btn-ghost" id="todayBtn" type="button">Today</button>
+        </div>
+      </div>
+      <div class="panel strip" id="strip"></div>
+      <div class="days" id="days"></div>
+    </section>
+    <section id="v-zones" hidden><div id="zonesBody"></div></section>
+    <section id="v-groceries" hidden><div id="grocBody"></div></section>
+    <section id="v-jobs" hidden><div id="jobsBody"></div></section>
+  </main>
+</div>
+
+<dialog id="askDlg"><div class="dbody">
+  <h2 id="askTitle"></h2><div id="askBody"></div>
+  <div class="dlg-acts"><span></span><div><button class="btn" type="button" id="askNo">Cancel</button><button class="btn btn-primary" type="button" id="askYes">OK</button></div></div>
+</div></dialog>
+
+<dialog id="clDlg"><div class="dbody">
+  <h2 id="clTitle">Checklist</h2><p class="muted" style="margin:0;font-size:13px">For doing, not saved.</p>
+  <div class="cl" id="clBody"></div>
+  <div class="dlg-acts"><button class="btn" type="button" id="clEdit">Edit zone</button><div><button class="btn btn-primary" type="button" data-close>Close</button></div></div>
+</div></dialog>
+
+<dialog id="zoneDlg"><form method="dialog" id="zoneForm">
+  <h2 id="zoneDlgTitle">Zone</h2>
+  <div class="fields">
+    <div class="field w2"><label for="zName">Zone</label><input id="zName" required></div>
+    <div class="field"><label for="zOrder">Order</label><input id="zOrder" type="number" min="0" inputmode="numeric"></div>
+    <div class="field"><label for="zMins">Minutes</label><input id="zMins" type="number" min="0" inputmode="numeric"></div>
+    <div class="field w2"><label for="zList">Checklist (one item per line)</label><textarea id="zList"></textarea></div>
+  </div>
+  <div class="checks"><label><input type="checkbox" id="zActive"> Active</label></div>
+  <p class="msg" id="zMsg"></p>
+  <div class="dlg-acts"><span></span><div><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit">Save</button></div></div>
+</form></dialog>
+
+<dialog id="jobDlg"><form method="dialog" id="jobForm">
+  <h2 id="jobDlgTitle">Job</h2>
+  <div class="fields">
+    <div class="field w2"><label for="jJob">Job</label><input id="jJob" required></div>
+    <div class="field"><label for="jArea">Area</label><input id="jArea" list="areaList" autocomplete="off"><datalist id="areaList"></datalist></div>
+    <div class="field"><label for="jMode">Mode</label><select id="jMode"><option>Fixed</option><option>Floating</option></select></div>
+    <div class="field w2" id="fLink"><label for="jLink">Day before… (e.g. gardening before the green bin)</label><select id="jLink"></select></div>
+    <div class="field" id="fEvery"><label for="jEvery">Every</label><input id="jEvery" type="number" min="1" inputmode="numeric" value="1"></div>
+    <div class="field" id="fUnit"><label for="jUnit">Unit</label><select id="jUnit"><option value="day">days</option><option value="week">weeks</option><option value="month">months</option></select></div>
+    <div class="field" id="fAnchor"><label for="jAnchor" id="jAnchorLab">Starts / first date</label><input id="jAnchor" type="date"></div>
+    <div class="field"><label for="jDay" id="jDayLab">Day</label><input id="jDay" list="dayOpts" autocomplete="off" placeholder="Mon…Sun, 1–31 or last"><datalist id="dayOpts"></datalist></div>
+    <div class="field"><label for="jMins">Minutes</label><input id="jMins" type="number" min="0" inputmode="numeric"></div>
+    <div class="field" id="fMissed"><label for="jMissed">If missed</label><select id="jMissed"><option value="Roll">Roll: stays on the list until done</option><option value="Skip">Skip: drop it, wait for the next one</option></select></div>
+    <div class="field w2"><label for="jNotes">Notes</label><input id="jNotes"></div>
+  </div>
+  <p class="preview" id="jPreview"></p>
+  <div class="checks"><label><input type="checkbox" id="jActive"> Active</label></div>
+  <p class="msg" id="jMsg"></p>
+  <div class="dlg-acts"><span></span><div><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit">Save</button></div></div>
+</form></dialog>
+
+<dialog id="itemDlg"><form method="dialog" id="itemForm">
+  <h2>Grocery item</h2>
+  <div class="fields">
+    <div class="field w2"><label for="gItem">Item</label><input id="gItem" required></div>
+    <div class="field"><label for="gShop">Shop</label><select id="gShop"><option>Any</option><option>Light</option><option>Heavy</option></select></div>
+    <div class="field"><label for="gRestock">Restock days</label><input id="gRestock" type="number" min="0" inputmode="numeric" placeholder="blank = not a staple"></div>
+    <div class="field w2"><label for="gNotes">Notes</label><input id="gNotes"></div>
+  </div>
+  <p class="msg" id="gMsg"></p>
+  <div class="dlg-acts"><span></span><div><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit">Save</button></div></div>
+</form></dialog>
+
+<dialog id="setDlg"><form method="dialog" id="setForm">
+  <h2>Settings</h2>
+  <div class="field"><label for="sSheet">Google Sheet link or ID</label><input id="sSheet" autocomplete="off"></div>
+  <div class="field"><label for="sClient">OAuth Client ID</label><input id="sClient" placeholder="….apps.googleusercontent.com" autocomplete="off"></div>
+  <p class="muted" style="margin:0;font-size:13px">Both are saved in this browser only. The Client ID is the same one your other apps use.</p>
+  <div id="sVals">
+    <div class="fields">
+      <div class="field"><label for="sOffice">Office day (commute shop)</label><select id="sOffice"></select></div>
+      <div class="field"><label for="sWeekend">Weekend shop day</label><select id="sWeekend"></select></div>
+      <div class="field"><label for="sDelivery">Weekend shop is a delivery</label><select id="sDelivery"><option value="no">No</option><option value="yes">Yes</option></select></div>
+      <div class="field"><label for="sZoneMins">Zone minutes</label><input id="sZoneMins" type="number" min="0" inputmode="numeric"></div>
+      <div class="field w2"><span class="lab">Zone days</span><div class="checks" id="sZoneDays"></div></div>
+      <div class="field"><label for="sCap">Daily cap (minutes)</label><input id="sCap" type="number" min="0" inputmode="numeric"></div>
+    </div>
+  </div>
+  <p class="msg" id="setMsg" style="color:var(--muted)"></p>
+  <div class="dlg-acts"><div><button class="btn btn-ghost" type="button" id="signOut">Sign out of Google</button><a class="btn btn-ghost" id="openSheet" target="_blank" rel="noopener" style="text-decoration:none">Open sheet ↗</a></div><div><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit">Save</button></div></div>
+</form></dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+/* ENGINE START */
+/* ---------- schedule engine (pure; dates are local yyyy-mm-dd strings, never UTC) ---------- */
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const fromIso = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (s, n) => { const d = fromIso(s); d.setDate(d.getDate() + n); return iso(d); };
+const dayDiff = (a, b) => Math.round((fromIso(b) - fromIso(a)) / 864e5);
+const mondayOf = s => addDays(s, -dow(s));
+function dow(s) { return (fromIso(s).getDay() + 6) % 7; } // Mon = 0
+const dayIdx = v => DAYS.findIndex(d => d.toLowerCase() === String(v || '').trim().slice(0, 3).toLowerCase());
+const dayList = v => String(v || '').split(/[,\s]+/).map(dayIdx).filter(i => i >= 0);
+/* n months on from s, landing on day-of-month dom (a number or 'last'), clamped to the month's length */
+function addMonths(s, n, dom) {
+  const d = fromIso(s), y = d.getFullYear(), m = d.getMonth() + n, last = new Date(y, m + 1, 0).getDate();
+  return iso(new Date(y, m, dom === 'last' ? last : Math.min(dom || d.getDate(), last)));
+}
+const every = j => Math.max(1, Math.round(Number(j.every) || 1));
+const unitOf = j => { const u = String(j.unit || 'day').toLowerCase(); return u.startsWith('w') ? 'week' : u.startsWith('m') ? 'month' : 'day'; };
+const domOf = (j, a) => String(j.day || '').trim().toLowerCase() === 'last' ? 'last' : (parseInt(j.day, 10) || fromIso(a).getDate());
+
+/* Fixed job: every date it falls on in [from, to]. Anchor sets the start and the phase (which fortnight, which month). */
+function fixedDates(j, from, to) {
+  const a = j.anchor, n = every(j), u = unitOf(j), out = [];
+  if (!a || from > to) return out;
+  if (u === 'month') {
+    const A = fromIso(a), F = fromIso(from), first = iso(new Date(A.getFullYear(), A.getMonth(), 1)), dom = domOf(j, a);
+    let k = Math.max(0, Math.floor(((F.getFullYear() - A.getFullYear()) * 12 + F.getMonth() - A.getMonth()) / n) - 1);
+    for (;; k++) { const d = addMonths(first, k * n, dom); if (d > to) break; if (d >= from && d >= a) out.push(d); }
+    return out;
+  }
+  const step = u === 'week' ? 7 * n : n;
+  let start = a;
+  if (u === 'week') { const di = dayIdx(j.day); if (di >= 0) start = addDays(a, (di - dow(a) + 7) % 7); }
+  const k = Math.max(0, Math.floor(dayDiff(start, from) / step));
+  for (let d = addDays(start, k * step); d <= to; d = addDays(d, step)) if (d >= from) out.push(d);
+  return out;
+}
+/* Any fixed or linked job's dates in [from, to]. Linked: the last `day` (e.g. Sat) strictly before each date of the job it links to. */
+function jobDates(j, from, to, jobs) {
+  if (String(j.link || '').trim()) {
+    const p = jobs.find(x => String(x.id) === String(j.link).trim());
+    if (!p || p === j || String(p.link || '').trim()) return [];
+    const di = dayIdx(j.day);
+    return fixedDates(p, addDays(from, 1), addDays(to, 7)).map(d => {
+      let c = addDays(d, -1); if (di >= 0) while (dow(c) !== di) c = addDays(c, -1); return c;
+    }).filter(d => d >= from && d <= to);
+  }
+  return fixedDates(j, from, to);
+}
+/* The next date after d (used to know when a missed one stops being shown). */
+const nextAfter = (j, d, jobs) => jobDates(j, addDays(d, 1), addDays(d, 400), jobs)[0] || null;
+const lastOnOrBefore = (j, d, jobs) => { const l = jobDates(j, addDays(d, -400), d, jobs); return l[l.length - 1] || null; };
+/* Floating job: due Every after Last done (first time: Anchor, else today), moved forward to the preferred day if one is set. */
+function floatDue(j, today) {
+  if (!j.last) return j.anchor || today;
+  const n = every(j), u = unitOf(j);
+  let d = u === 'month' ? addMonths(j.last, n) : addDays(j.last, u === 'week' ? 7 * n : n);
+  const di = dayIdx(j.day); if (di >= 0) while (dow(d) !== di) d = addDays(d, 1);
+  return d;
+}
+const isFloating = j => /^fl/i.test(String(j.mode || '').trim());
+
+/* Everything due in [from, to] plus what's overdue as of today.
+   done = Done rows {kind, ref, for, void}. Returns { items:[{job, date, done, missed}], overdue:[{job, date}] } */
+function jobsDue(jobs, done, from, to, today) {
+  const got = new Set(done.filter(x => !x.void && x.kind === 'Job').map(x => x.ref + '|' + x.for));
+  const items = [], overdue = [];
+  jobs.filter(j => j.active !== false && String(j.job || '').trim()).forEach(j => {
+    if (isFloating(j)) {
+      const d = floatDue(j, today);
+      if (d < today) overdue.push({ job: j, date: d });
+      else if (d >= from && d <= to) items.push({ job: j, date: d, done: false, missed: false });
+      // a floating job ticked inside the window still shows, ticked, on the day it was due
+      done.filter(x => !x.void && x.kind === 'Job' && String(x.ref) === String(j.id) && x.for >= from && x.for <= to && x.for !== d)
+        .forEach(x => items.push({ job: j, date: x.for, done: true, missed: false }));
+      return;
+    }
+    jobDates(j, from, to, jobs).forEach(d => {
+      const isDone = got.has(j.id + '|' + d);
+      items.push({ job: j, date: d, done: isDone, missed: !isDone && d < today });
+    });
+    const skip = String(j.missed || '').toLowerCase().startsWith('s');
+    const p = lastOnOrBefore(j, addDays(today, -1), jobs);
+    if (!skip && p && !got.has(j.id + '|' + p)) { const nx = nextAfter(j, p, jobs); if (!nx || nx > today) overdue.push({ job: j, date: p }); }
+  });
+  items.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  overdue.sort((a, b) => a.date < b.date ? -1 : 1);
+  return { items, overdue };
+}
+
+/* Zone queue: active zones, longest since cleaned first (never cleaned first of all), then Order. */
+function zoneQueue(zones) {
+  return zones.filter(z => z.active !== false && String(z.zone || '').trim())
+    .slice().sort((a, b) => (a.last || '') < (b.last || '') ? -1 : (a.last || '') > (b.last || '') ? 1 : (Number(a.order) || 0) - (Number(b.order) || 0));
+}
+/* Which zone goes on each zone day in [from, to]. Past days show what was cleaned (or missed); today onwards follows the queue,
+   so a missed day just shifts everything along by one instead of doubling up. Returns { 'yyyy-mm-dd': [{zone, done, missed}] } */
+function zonePlan(zones, done, from, to, today, zoneDays) {
+  const zd = new Set(zoneDays && zoneDays.length ? zoneDays : [0, 1, 2, 3, 4]), out = {};
+  const byId = Object.fromEntries(zones.map(z => [String(z.id), z]));
+  const cleaned = d => done.filter(x => !x.void && x.kind === 'Zone' && x.for === d).map(x => byId[String(x.ref)]).filter(Boolean);
+  for (let d = from; d <= to && d < today; d = addDays(d, 1)) {
+    const c = cleaned(d);
+    if (c.length) out[d] = c.map(z => ({ zone: z, done: true, missed: false }));
+    else if (zd.has(dow(d))) out[d] = [{ zone: null, done: false, missed: true }];
+  }
+  const q = zoneQueue(zones); if (!q.length) return out;
+  let qi = 0;
+  for (let d = today; d <= to; d = addDays(d, 1)) {
+    if (d === today) { const c = cleaned(d); if (c.length) { if (d >= from) out[d] = c.map(z => ({ zone: z, done: true, missed: false })); continue; } }
+    if (!zd.has(dow(d))) continue;
+    const z = q[qi++ % q.length];
+    if (d >= from) out[d] = [{ zone: z, done: false, missed: false }];
+  }
+  return out;
+}
+
+/* Groceries: next shop dates, which shop an item goes in, and whether a staple is due again. */
+function nextDow(today, di) { return addDays(today, (di - dow(today) + 7) % 7); }
+function shops(today, officeDay, weekendDay) {
+  const o = dayIdx(officeDay), w = dayIdx(weekendDay);
+  return { commute: o >= 0 ? nextDow(today, o) : null, weekend: nextDow(today, w >= 0 ? w : 5) };
+}
+function shopFor(item, s) {
+  const t = String(item.shop || 'Any').toLowerCase();
+  if (t.startsWith('l') && s.commute) return 'commute';
+  if (t.startsWith('h') || !s.commute) return 'weekend';
+  return s.commute <= s.weekend ? 'commute' : 'weekend';
+}
+/* An item is on the list if marked Need, or it's a staple whose restock date falls on or before its shop. */
+function needed(item, s) {
+  if (String(item.status || '').toLowerCase() === 'need') return { need: true, restock: false };
+  const r = Number(item.restock);
+  if (r > 0 && item.last) { const when = s[shopFor(item, s)]; if (addDays(item.last, r) <= when) return { need: true, restock: true }; }
+  return { need: false, restock: false };
+}
+/* ENGINE END */
+
+/* ---------- app (everything below uses the engine's date helpers) ---------- */
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const todayIso = () => iso(new Date());
+const fd = s => { if (!s) return ''; const d = fromIso(s); return `${DAYS[dow(s)]} ${d.getDate()} ${MON[d.getMonth()]}`; };
+const fdy = s => { if (!s) return ''; const d = fromIso(s); return `${d.getDate()} ${MON[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`; };
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const isoToSerial = s => { const [y, m, d] = s.split('-').map(Number); return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 864e5); };
+const serialToIso = n => { const d = new Date(Date.UTC(1899, 11, 30) + Math.round(n) * 864e5); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`; };
+function toIso(v) {
+  if (v === '' || v == null) return '';
+  if (typeof v === 'number') return serialToIso(v);
+  const s = String(v).trim();
+  if (/^\d{4,6}(\.\d+)?$/.test(s)) return serialToIso(Number(s));
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const d = new Date(s); return isNaN(d) ? '' : iso(d);
+}
+
+/* Each tab: its title in the sheet (all start with the house emoji so they never clash), header text, and app keys in column order. */
+const TABS = {
+  Jobs: { title: '🏠 Jobs', key: 'id', cols: ['id', 'job', 'area', 'mode', 'every', 'unit', 'anchor', 'day', 'link', 'mins', 'missed', 'last', 'active', 'notes'],
+    heads: ['id', 'Job', 'Area', 'Mode', 'Every', 'Unit', 'Anchor', 'Day', 'Linked to', 'Minutes', 'If missed', 'Last done', 'Active', 'Notes'] },
+  Zones: { title: '🏠 Zones', key: 'id', cols: ['id', 'zone', 'order', 'mins', 'list', 'last', 'active'],
+    heads: ['id', 'Zone', 'Order', 'Minutes', 'Checklist', 'Last cleaned', 'Active'] },
+  Groceries: { title: '🏠 Groceries', key: 'id', cols: ['id', 'item', 'shop', 'status', 'restock', 'last', 'notes'],
+    heads: ['id', 'Item', 'Shop', 'Status', 'Restock days', 'Last bought', 'Notes'] },
+  Done: { title: '🏠 Done', key: 'id', cols: ['id', 'date', 'for', 'kind', 'ref', 'name', 'prev', 'void'],
+    heads: ['id', 'Date', 'For', 'Kind', 'Ref', 'Name', 'Prev', 'Void'] },
+  Settings: { title: '🏠 Settings', key: 'key', cols: ['key', 'value', 'notes'], heads: ['Key', 'Value', 'Notes'] }
+};
+const TAB_NAMES = Object.keys(TABS);
+const DATE_COLS = new Set(['anchor', 'last', 'date', 'for', 'prev']); // prev holds a date too (the Last done it replaced)
+const BOOL_COLS = new Set(['active', 'void']);
+const NUM_COLS = new Set(['id', 'every', 'mins', 'order', 'restock', 'ref']);
+const colLetter = i => String.fromCharCode(65 + i);
+const lastCol = tab => colLetter(TABS[tab].cols.length - 1);
+const rng = (tab, a) => `'${TABS[tab].title}'!${a}`;
+const DEFAULT_SETTINGS = [
+  ['office_day', 'Thu', 'Day you\'re in the Melbourne office: commute shop'],
+  ['weekend_shop_day', 'Sat', 'Day of the big weekend shop'],
+  ['delivery', 'no', 'yes if the weekend shop is a delivery order (placed the day before)'],
+  ['zone_days', 'Mon, Tue, Wed, Thu, Fri', 'Days a cleaning zone is scheduled'],
+  ['zone_minutes', 30, 'Default minutes per zone'],
+  ['daily_cap', 60, 'Minutes of jobs per day before a day card is flagged busy']
+];
+
+const state = { data: {}, sheets: {}, missing: [], tab: 'week', weekStart: null, live: false, busy: false, demo: false, gate: '' };
+const D = tab => state.data[tab] || [];
+const emptyData = () => Object.fromEntries(TAB_NAMES.map(n => [n, []]));
+
+/* ---------- Google Sheets (direct, same sign-in as the sister apps) ---------- */
+const g = {
+  cfgKey: 'household_config', tokKey: 'jm-google-token', client: null,
+  cfg() { let c = {}; try { c = JSON.parse(localStorage.getItem(this.cfgKey) || 'null') || {}; } catch (e) {}
+    if (!c.clientId) { try { const m = JSON.parse(localStorage.getItem('mbl_config') || 'null'); if (m && m.clientId) c.clientId = m.clientId; } catch (e) {} }
+    return c; },
+  saveCfg(c) { try { localStorage.setItem(this.cfgKey, JSON.stringify({ ...this.cfg(), ...c })); } catch (e) {} },
+  tok() { try { return JSON.parse(localStorage.getItem(this.tokKey) || 'null'); } catch (e) { return null; } },
+  valid() { const t = this.tok(); return !!(t && t.exp > Date.now()); },
+  async api(path, opts = {}) {
+    if (state.demo) throw { code: 'api', message: 'demo mode makes no sheet calls' };
+    if (!this.valid()) { signedOut(); throw { code: 'signin' }; }
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.cfg().sheetId}${path}`;
+    const o = { method: opts.method || 'GET', headers: { Authorization: 'Bearer ' + this.tok().t } };
+    if (opts.body) { o.headers['Content-Type'] = 'application/json'; o.body = JSON.stringify(opts.body); }
+    const res = await fetch(url, o);
+    if (res.status === 401) { try { localStorage.removeItem(this.tokKey); } catch (e) {} signedOut(); throw { code: 'signin' }; }
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw { code: 'api', message: (body.error && body.error.message) || 'HTTP ' + res.status };
+    return body;
+  }
+};
+function loadGis() {
+  return new Promise((ok, fail) => {
+    if (window.google && google.accounts && google.accounts.oauth2) return ok();
+    const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+    s.onload = () => ok(); s.onerror = () => fail(new Error('Google sign-in didn\'t load'));
+    document.head.appendChild(s);
+  });
+}
+function connect() { googleSignIn(); }
+function googleSignIn() {
+  const c = g.cfg();
+  if (!c.clientId || !c.sheetId) { openSettings('Add your Client ID and Google Sheet to connect.'); return; }
+  if (g.valid()) { refresh(); return; }
+  if (!(window.google && google.accounts && google.accounts.oauth2)) { loadGis().then(googleSignIn, e => notice(e.message, 'error')); return; }
+  try {
+    if (!g.client) g.client = google.accounts.oauth2.initTokenClient({
+      client_id: c.clientId, scope: 'https://www.googleapis.com/auth/spreadsheets',
+      callback: r => {
+        if (r.error) { notice('Google sign-in failed: ' + r.error, 'error'); return; }
+        try { localStorage.setItem(g.tokKey, JSON.stringify({ t: r.access_token, exp: Date.now() + (r.expires_in - 120) * 1000 })); } catch (e) {}
+        refresh();
+      },
+      error_callback: e => notice('Google sign-in was closed or blocked' + (e && e.type ? ' (' + e.type + ')' : '') + '. Press Connect to try again.', 'error')
+    });
+    g.client.requestAccessToken({ prompt: '' });
+  } catch (err) { notice(err.message, 'error'); }
+}
+function signedOut() { state.live = false; setStatus('error', 'Not connected'); $('refreshBtn').textContent = 'Connect'; setGate('connect'); }
+
+/* ---------- read ---------- */
+function parseCell(col, v) {
+  if (DATE_COLS.has(col)) return toIso(v);
+  if (BOOL_COLS.has(col)) { if (col === 'active' && (v === '' || v == null)) return true; return v === true || v === 'TRUE' || v === 'true'; }
+  if (NUM_COLS.has(col)) { if (v === '' || v == null) return null; const n = typeof v === 'number' ? v : Number(String(v).replace(/,/g, '')); return isNaN(n) ? null : n; }
+  return v == null ? '' : String(v);
+}
+async function readAll() {
+  const meta = await g.api('?fields=sheets.properties(sheetId,title,gridProperties.rowCount)');
+  const sheets = {}; (meta.sheets || []).forEach(s => { sheets[s.properties.title] = { sid: s.properties.sheetId, rows: s.properties.gridProperties.rowCount }; });
+  const missing = TAB_NAMES.filter(n => !sheets[TABS[n].title]);
+  if (missing.length) return { sheets, missing, data: emptyData() };
+  const q = TAB_NAMES.map(n => 'ranges=' + encodeURIComponent(rng(n, `A2:${lastCol(n)}`))).join('&');
+  const res = await g.api(`/values:batchGet?${q}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`);
+  const data = {};
+  TAB_NAMES.forEach((n, i) => {
+    const t = TABS[n], vals = (res.valueRanges[i] && res.valueRanges[i].values) || [], rows = [];
+    vals.forEach((r, j) => {
+      const o = { _row: j + 2 };
+      t.cols.forEach((c, k) => { o[c] = parseCell(c, r[k]); });
+      const kv = o[t.key]; if (kv !== '' && kv != null) rows.push(o);
+    });
+    data[n] = rows;
+  });
+  return { sheets, missing, data };
+}
+async function refresh(keepNotice) {
+  if (state.busy) return;
+  if (state.demo) { setStatus('live', 'Demo'); renderAll(); return; }
+  setStatus('loading', 'Loading…');
+  try {
+    const r = await readAll();
+    state.sheets = r.sheets; state.data = r.data; state.missing = r.missing;
+    if (r.missing.length) { state.live = false; setStatus('error', 'Needs set up'); setGate('setup'); return; }
+    state.live = true; setGate('');
+    $('refreshBtn').textContent = 'Refresh';
+    setStatus('live', 'Live · ' + new Date().toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }));
+    if (!keepNotice) hideNotice();
+    renderAll();
+  } catch (e) {
+    if (e.code !== 'signin') { setStatus('error', 'Couldn\'t load'); notice('Couldn\'t load the sheet: ' + (e.message || e), 'error'); }
+  }
+}
+
+/* ---------- write (never deletes, never sorts: remove = Active FALSE, undo = Void TRUE) ---------- */
+function cellOut(col, v) {
+  if (BOOL_COLS.has(col)) return !!v;
+  if (v == null) return '';
+  if (NUM_COLS.has(col)) return v === '' ? '' : Number(v);
+  if (DATE_COLS.has(col)) return v || '';
+  const s = String(v);
+  return /^[=+@-]/.test(s) ? "'" + s : s;
+}
+const rowOut = (tab, o) => TABS[tab].cols.map(c => cellOut(c, o[c]));
+async function withBusy(label, fn) {
+  state.busy = true; setStatus('loading', label);
+  try { await fn(); state.busy = false; await refresh(); return true; }
+  catch (e) {
+    state.busy = false;
+    if (e.code !== 'signin') { notice('Couldn\'t save: ' + (e.message || e), 'error'); await refresh(true); setStatus('error', 'Not saved'); }
+    return false;
+  }
+}
+/* Re-read the key column just before an append: the highest id and the last non-empty row. */
+async function tail(tab) {
+  const r = await g.api(`/values/${encodeURIComponent(rng(tab, 'A2:A'))}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`);
+  let last = 1, max = 0;
+  (r.values || []).forEach((row, i) => { const v = row && row[0]; if (v !== '' && v != null) { last = i + 2; const n = Number(v); if (!isNaN(n) && n > max) max = n; } });
+  return { last, max };
+}
+async function ensureRows(tab, need) {
+  const sh = state.sheets[TABS[tab].title] || {}, have = sh.rows || 1000;
+  if (need <= have) return;
+  await g.api(':batchUpdate', { method: 'POST', body: { requests: [{ appendDimension: { sheetId: sh.sid, dimension: 'ROWS', length: Math.max(500, need - have) } }] } });
+  sh.rows = have + Math.max(500, need - have);
+}
+async function addRows(tab, objs) {
+  const hasId = TABS[tab].cols[0] === 'id';
+  if (state.demo) {
+    const rows = state.data[tab] || (state.data[tab] = []); let max = rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0);
+    objs.forEach(o => { if (hasId) o.id = ++max; rows.push({ ...o, _row: rows.length + 2 }); });
+    return objs;
+  }
+  const t = await tail(tab), start = t.last + 1, end = start + objs.length - 1;
+  objs.forEach((o, i) => { if (hasId) o.id = t.max + 1 + i; });
+  await ensureRows(tab, end);
+  await g.api(`/values/${encodeURIComponent(rng(tab, `A${start}:${lastCol(tab)}${end}`))}?valueInputOption=USER_ENTERED`, { method: 'PUT', body: { values: objs.map(o => rowOut(tab, o)) } });
+  return objs;
+}
+/* Before touching a row, check it still holds the same record (someone may have sorted or edited the sheet). */
+async function assertRow(tab, o) {
+  if (state.demo) return;
+  const k = TABS[tab].key, ki = TABS[tab].cols.indexOf(k);
+  const r = await g.api(`/values/${encodeURIComponent(rng(tab, `${colLetter(ki)}${o._row}`))}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`);
+  const v = parseCell(k, ((r.values || [[]])[0] || [])[0]);
+  if (String(v) !== String(o[k])) throw { code: 'api', message: 'the sheet changed since it loaded. Refreshed. Try again.' };
+}
+async function updateRow(tab, o) {
+  if (state.demo) { const rows = state.data[tab], i = rows.findIndex(x => x._row === o._row); if (i >= 0) rows[i] = { ...o }; return; }
+  // Write only the span of cells that changed since load, so a hand edit to another cell in the row survives.
+  const was = (state.data[tab] || []).find(x => x._row === o._row), cols = TABS[tab].cols;
+  const ch = cols.map((c, i) => (!was || JSON.stringify(cellOut(c, was[c])) !== JSON.stringify(cellOut(c, o[c]))) ? i : -1).filter(i => i >= 0);
+  if (!ch.length) return;
+  await assertRow(tab, o);
+  const a = ch[0], b = ch[ch.length - 1], vals = rowOut(tab, o).slice(a, b + 1);
+  await g.api(`/values/${encodeURIComponent(rng(tab, `${colLetter(a)}${o._row}:${colLetter(b)}${o._row}`))}?valueInputOption=USER_ENTERED`, { method: 'PUT', body: { values: [vals] } });
+}
+
+/* ---------- set up the sheet (adds only the missing 🏠 tabs, never touches anything else) ---------- */
+async function setupSheet() {
+  const miss = state.missing.slice();
+  const ok = await ask('Set up this sheet?', `<p style="margin:0 0 8px">This will add ${plural(miss.length, 'new tab')} to the sheet. Nothing that is already there is changed.</p><ul class="plist">${miss.map(n => `<li>${esc(TABS[n].title)}</li>`).join('')}</ul>`, 'Add tabs');
+  if (!ok) return;
+  state.busy = true; setStatus('loading', 'Setting up…');
+  try {
+    await g.api(':batchUpdate', { method: 'POST', body: { requests: miss.map(n => ({ addSheet: { properties: { title: TABS[n].title } } })) } });
+    for (const n of miss) {
+      await g.api(`/values/${encodeURIComponent(rng(n, `A1:${lastCol(n)}1`))}?valueInputOption=USER_ENTERED`, { method: 'PUT', body: { values: [TABS[n].heads] } });
+      if (n === 'Settings') await g.api(`/values/${encodeURIComponent(rng(n, `A2:C${1 + DEFAULT_SETTINGS.length}`))}?valueInputOption=USER_ENTERED`, { method: 'PUT', body: { values: DEFAULT_SETTINGS.map(r => r.map((v, i) => i === 2 ? cellOut('notes', v) : v)) } });
+    }
+    state.busy = false; toast('Sheet set up'); await refresh();
+  } catch (e) { state.busy = false; if (e.code !== 'signin') { notice('Couldn\'t set up the sheet: ' + (e.message || e), 'error'); setStatus('error', 'Not set up'); } }
+}
+
+/* ---------- chrome ---------- */
+function setStatus(s, text) { $('status').dataset.state = s; $('statusText').textContent = text; }
+function notice(msg, kind) { const n = $('notice'); n.textContent = msg; n.dataset.kind = kind || ''; n.hidden = false; }
+function hideNotice() { $('notice').hidden = true; }
+let toastT;
+function toast(m, act) {
+  const t = $('toast'); t.textContent = m;
+  if (act) { const b = document.createElement('button'); b.className = 'btn btn-sm'; b.type = 'button'; b.textContent = act.label; b.addEventListener('click', () => { t.hidden = true; act.fn(); }); t.appendChild(b); }
+  t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, act ? 7000 : 3200);
+}
+function ask(title, html, okLabel) {
+  return new Promise(res => {
+    $('askTitle').textContent = title; $('askBody').innerHTML = html; $('askYes').textContent = okLabel || 'OK';
+    const dlg = $('askDlg'); let out = false;
+    const done = v => { out = v; dlg.close(); };
+    $('askYes').onclick = () => done(true); $('askNo').onclick = () => done(false);
+    dlg.addEventListener('close', () => res(out), { once: true });
+    dlg.showModal();
+  });
+}
+function setGate(kind) {
+  state.gate = kind; const el = $('gate');
+  if (!kind) { el.hidden = true; document.body.removeAttribute('data-gate'); return; }
+  document.body.dataset.gate = kind; el.hidden = false;
+  if (kind === 'setup') {
+    el.innerHTML = `<h2>Household</h2><div class="notice" style="margin:12px 0"><b>This sheet isn't set up for Household yet.</b><br>It needs ${plural(state.missing.length, 'tab')} that ${state.missing.length === 1 ? 'is' : 'are'} missing: ${state.missing.map(n => esc(TABS[n].title)).join(', ')}.</div>
+      <p class="hint">Setting up adds only those tabs and their header rows. Nothing else in the sheet is touched.</p>
+      <button class="btn btn-primary" type="button" data-act="setup">Set up sheet</button>`;
+  } else {
+    const c = g.cfg(), ready = c.clientId && c.sheetId;
+    el.innerHTML = `<h2>Household</h2>
+      <p class="hint" style="margin-top:8px">Cleaning zones that rotate, recurring jobs, bins, gardening and a two-shop grocery list in one week view. Your data lives in your own Google Sheet.</p>
+      <div class="notice" style="margin:12px 0">${ready ? 'Press Connect to sign in to Google and load your sheet.' : 'Add your Google Client ID and Sheet link in Settings to connect.'}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary" type="button" data-act="${ready ? 'connect' : 'settings'}">${ready ? 'Connect' : 'Open settings'}</button><button class="btn" type="button" data-act="demo">Try with sample data</button></div>`;
+  }
+}
+
+/* ---------- derived ---------- */
+const setting = (k, d) => { const r = D('Settings').find(x => x.key === k); return r && String(r.value).trim() !== '' ? r.value : d; };
+const zoneDays = () => dayList(setting('zone_days', 'Mon, Tue, Wed, Thu, Fri'));
+const shopsNow = () => shops(todayIso(), setting('office_day', 'Thu'), setting('weekend_shop_day', 'Sat'));
+const isDelivery = () => /^y/i.test(String(setting('delivery', 'no')));
+const zoneMins = z => Number(z.mins) || Number(setting('zone_minutes', 30)) || 30;
+function groceryLists() {
+  const sh = shopsNow(), out = { sh, commute: [], weekend: [], rest: [] };
+  D('Groceries').forEach(it => { const n = needed(it, sh); if (n.need) out[shopFor(it, sh)].push({ it, restock: n.restock }); else out.rest.push(it); });
+  ['commute', 'weekend'].forEach(k => out[k].sort((a, b) => a.it.item.localeCompare(b.it.item)));
+  out.rest.sort((a, b) => a.item.localeCompare(b.item));
+  return out;
+}
+const binColour = n => { n = String(n).toLowerCase(); return /red|general|rubbish|landfill/.test(n) ? 'red' : /yellow|recycl/.test(n) ? 'yellow' : /green|garden|fogo|organic/.test(n) ? 'green' : /purple|glass/.test(n) ? 'purple' : 'none'; };
+const isBin = j => String(j.area || '').trim().toLowerCase() === 'bins';
+const doneRow = (kind, ref, forDate) => D('Done').filter(x => !x.void && x.kind === kind && String(x.ref) === String(ref) && x.for === forDate).pop();
+function lastWords(s) {
+  if (!s) return 'never';
+  const n = dayDiff(s, todayIso());
+  return n <= 0 ? 'today' : n === 1 ? 'yesterday' : n + ' days ago';
+}
+function schedWords(j, jobs) {
+  const n = every(j), u = unitOf(j);
+  if (isFloating(j)) return `${plural(n, u)} after last done` + (dayIdx(j.day) >= 0 ? ` · on a ${DAYS[dayIdx(j.day)]}` : '');
+  if (String(j.link || '').trim()) { const p = jobs.find(x => String(x.id) === String(j.link).trim()), di = dayIdx(j.day); return `${di >= 0 ? DAYS[di] : 'Day'} before ${p ? p.job : 'another job'}`; }
+  let s = n === 1 ? `Every ${u}` : `Every ${n} ${u}s`;
+  if (u === 'week') { const di = dayIdx(j.day), d = di >= 0 ? di : (j.anchor ? dow(j.anchor) : -1); if (d >= 0) s += ' · ' + DAYS[d]; }
+  else if (u === 'month') { const last = String(j.day || '').trim().toLowerCase() === 'last', dm = last ? 'last day' : 'day ' + (parseInt(j.day, 10) || (j.anchor ? fromIso(j.anchor).getDate() : '')); s += ' · ' + dm; }
+  return s;
+}
+
+/* ---------- render: week ---------- */
+function renderAll() {
+  $('todayLabel').textContent = fd(todayIso()) + ' ' + fromIso(todayIso()).getFullYear();
+  renderWeek(); renderZones(); renderGroceries(); renderJobs();
+}
+function renderWeek() {
+  const t = todayIso(), from = state.weekStart || (state.weekStart = mondayOf(t)), to = addDays(from, 6);
+  $('weekTitle').textContent = 'Week of ' + fd(from);
+  const jobs = D('Jobs'), done = D('Done'), zones = D('Zones');
+  const due = jobsDue(jobs, done, from, to, t);
+  const zp = zonePlan(zones, done, from, to, t, zoneDays());
+  const gl = groceryLists(), sh = gl.sh, cap = Number(setting('daily_cap', 60)) || 60;
+  const od = new Set(due.overdue.map(o => o.job.id + '|' + o.date));
+
+  // due strip
+  const row = (it, meta) => `<label class="srow" data-done="${!!it.done}"><input type="checkbox" data-job="${esc(it.job.id)}" data-date="${esc(it.date)}" ${it.done ? 'checked' : ''} aria-label="Done: ${esc(it.job.job)}"><span class="nm">${esc(it.job.job)}</span><span class="meta">${esc(meta)}</span></label>`;
+  const mn = j => j.mins ? j.mins + ' min' : '';
+  const groups = [
+    ['overdue', 'Overdue', due.overdue.map(o => row({ job: o.job, date: o.date, done: false }, 'since ' + fd(o.date)))],
+    ['today', 'Today', due.items.filter(i => i.date === t && (!i.missed)).map(i => row(i, mn(i.job)))],
+    ['rest', from <= t && t <= to ? 'Rest of week' : 'This week', due.items.filter(i => i.date > t && !i.done).map(i => row(i, fd(i.date) + (i.job.mins ? ' · ' + mn(i.job) : '')))]
+  ].filter(x => x[2].length);
+  const undone = due.overdue.length + due.items.filter(i => !i.done && !i.missed && i.date >= t).length;
+  $('strip').innerHTML = (undone ? '' : '<p class="clear">All clear</p>') + groups.map(([k, label, rows]) => `<div class="sgroup" data-kind="${k}"><span class="eyebrow">${label}</span><div class="srows">${rows.join('')}</div></div>`).join('');
+
+  // day cards
+  const cards = [];
+  for (let k = 0; k < 7; k++) {
+    const d = addDays(from, k), items = due.items.filter(i => i.date === d), zs = zp[d] || [];
+    let mins = 0, body = '';
+    zs.forEach(e => {
+      if (e.missed) { body += '<div class="dline" data-muted="true"><span>🧽</span><span class="nm">Zone missed</span></div>'; return; }
+      mins += zoneMins(e.zone);
+      body += `<div class="dline" data-done="${e.done}"><input type="checkbox" data-zone="${esc(e.zone.id)}" data-date="${d}" ${e.done ? 'checked' : ''} ${d > t ? 'disabled' : ''} aria-label="Cleaned: ${esc(e.zone.zone)}"><span>🧽</span><button type="button" class="linkish" data-zonelist="${esc(e.zone.id)}">${esc(e.zone.zone)}</button><span class="meta">· ${zoneMins(e.zone)} min</span></div>`;
+    });
+    const bins = items.filter(i => isBin(i.job)), others = items.filter(i => !isBin(i.job));
+    const muted = i => i.missed && !od.has(i.job.id + '|' + i.date);
+    if (bins.length) body += '<div class="bins">' + bins.map(i => muted(i)
+      ? `<span class="bin" data-c="${binColour(i.job.job)}" data-muted="true"><span>${esc(i.job.job)} · missed</span></span>`
+      : `<label class="bin" data-c="${binColour(i.job.job)}" data-done="${i.done}"><input type="checkbox" data-job="${esc(i.job.id)}" data-date="${d}" ${i.done ? 'checked' : ''} aria-label="Done: ${esc(i.job.job)}"><span>${esc(i.job.job)}</span></label>`).join('') + '</div>';
+    others.forEach(i => {
+      if (muted(i)) { body += `<div class="dline" data-muted="true"><span class="nm">${esc(i.job.job)}</span><span class="meta">missed</span></div>`; return; }
+      mins += Number(i.job.mins) || 0;
+      body += `<label class="dline" data-done="${i.done}"><input type="checkbox" data-job="${esc(i.job.id)}" data-date="${d}" ${i.done ? 'checked' : ''} aria-label="Done: ${esc(i.job.job)}"><span class="nm">${esc(i.job.job)}</span><span class="meta">${i.missed ? 'overdue' + (i.job.mins ? ' · ' : '') : ''}${i.job.mins ? i.job.mins + ' min' : ''}</span></label>`;
+    });
+    bins.filter(i => !muted(i)).forEach(i => { mins += Number(i.job.mins) || 0; });
+    // shop lines
+    const deliv = isDelivery(), wkDate = deliv ? (addDays(sh.weekend, -1) >= t ? addDays(sh.weekend, -1) : sh.weekend) : sh.weekend;
+    if (sh.commute && d === sh.commute) body += `<button type="button" class="shopline" data-goto="groceries">🛒 Commute shop · ${plural(gl.commute.length, 'item')}</button>`;
+    if (d === wkDate) body += `<button type="button" class="shopline" data-goto="groceries">🛒 ${deliv ? 'Delivery order' : 'Weekend shop'} · ${plural(gl.weekend.length, 'item')}</button>`;
+    cards.push(`<div class="dcard" data-date="${d}" data-past="${d < t}" data-today="${d === t}">
+      <div class="dcard-h"><h3>${esc(fd(d))}</h3>${d === t ? '<span class="tag acc">Today</span>' : ''}</div>
+      ${body || '<span class="dfree">Nothing planned</span>'}
+      <div class="dfoot"><span>${mins ? mins + ' min' : ''}</span>${mins > cap ? '<span class="tag warn">Busy</span>' : ''}</div></div>`);
+  }
+  $('days').innerHTML = cards.join('');
+}
+
+/* ---------- render: zones ---------- */
+function renderZones() {
+  const zones = D('Zones'), q = zoneQueue(zones), t = todayIso(), n = zoneDays().length || 5;
+  const plan = zonePlan(zones, D('Done'), t, addDays(t, 42), t, zoneDays()), nextOn = {};
+  Object.keys(plan).sort().forEach(d => plan[d].forEach(e => { if (e.zone && !e.done && !nextOn[e.zone.id]) nextOn[e.zone.id] = d; }));
+  const paused = zones.filter(z => z.active === false);
+  const hint = `${plural(n, 'slot')} a week, so ` + (n === 5 ? '7–10 zones means each room every 1½–2 weeks.' : `${q.length || 8} zones means each room every ${(Math.round((q.length || 8) / n * 2) / 2).toString().replace('.5', '½')} weeks.`);
+  const li = z => `<li><div class="qmain"><button type="button" class="linkish" data-zonelist="${esc(z.id)}">${esc(z.zone)}</button><div class="sub">${zoneMins(z)} min · last cleaned ${esc(lastWords(z.last))} · ${plural(String(z.list || '').split('\n').filter(x => x.trim()).length, 'checklist item')}${nextOn[z.id] ? ' · next ' + esc(fd(nextOn[z.id])) : ''}</div></div><button type="button" class="btn btn-sm" data-editzone="${esc(z.id)}">Edit</button></li>`;
+  $('zonesBody').innerHTML = `<div class="panel"><div class="panel-head"><h2>Up next</h2><button type="button" class="btn btn-primary" data-newzone>+ Zone</button></div>
+    <p class="hint">${hint}</p>
+    ${q.length ? `<ol class="queue">${q.map(li).join('')}</ol>` : '<p class="empty">No zones yet. Add the rooms of the new place: + Zone</p>'}
+    ${paused.length ? `<details class="paused"><summary>Paused (${paused.length})</summary><ul class="queue" style="counter-reset:none">${paused.map(z => `<li style="gap:10px"><div class="qmain"><span class="muted">${esc(z.zone)}</span></div><button type="button" class="btn btn-sm" data-editzone="${esc(z.id)}">Edit</button></li>`).join('')}</ul></details>` : ''}</div>`;
+}
+
+/* ---------- render: groceries ---------- */
+function renderGroceries() {
+  const gl = groceryLists(), sh = gl.sh;
+  const col = (id, title, list, extra) => `<div class="panel" id="${id}"><div class="panel-head"><h2>${title}</h2></div>${extra || ''}
+    ${list.length ? `<ul class="glist">${list.map(({ it, restock }) => `<li class="gitem"><label><input type="checkbox" data-bought="${esc(it.id)}" aria-label="Bought: ${esc(it.item)}"><span class="nm">${esc(it.item)}</span></label>${restock ? '<span class="tag acc">staple</span>' : ''}<button type="button" class="iconbtn" data-edititem="${esc(it.id)}" aria-label="Edit ${esc(it.item)}">✎</button></li>`).join('')}</ul>` : '<p class="empty">Nothing needed for this shop.</p>'}</div>`;
+  const wkTitle = `Weekend shop · ${esc(fd(sh.weekend))} · Heavy`;
+  const delivTag = isDelivery() ? `<p class="hint">Delivery: place the order by ${esc(fd(addDays(sh.weekend, -1)))}.</p>` : '';
+  const warn = gl.commute.length > 12 ? `<div class="warn-box">That's ${gl.commute.length} items for the commute: a lot for a backpack. Move some to the weekend shop.</div>` : '';
+  const comTitle = sh.commute ? `Commute shop · ${esc(fd(sh.commute))} · Light` : 'Commute shop · no office day set';
+  const when = it => (Number(it.restock) > 0 ? `every ${it.restock} days` : '') + (it.last ? (Number(it.restock) > 0 ? ' · ' : '') + 'last bought ' + fdy(it.last) : '');
+  $('grocBody').innerHTML = `<form class="addrow" id="quickAdd" autocomplete="off"><input id="qaItem" placeholder="Add an item" aria-label="Item" required><select id="qaShop" aria-label="Shop"><option>Any</option><option>Light</option><option>Heavy</option></select><button class="btn btn-primary" type="submit">Add</button></form>
+    <div class="shopcols">${col('colCommute', comTitle, gl.commute, warn)}${col('colWeekend', wkTitle, gl.weekend, delivTag)}</div>
+    <div class="panel" id="colRest"><div class="panel-head"><h2>Staples and everything else</h2></div>
+    ${gl.rest.length ? `<ul class="glist">${gl.rest.map(it => `<li class="gitem"><span class="nm"><b style="font-weight:600">${esc(it.item)}</b> <span class="sub">${esc(it.shop || 'Any')}${when(it) ? ' · ' + esc(when(it)) : ''}</span></span><button type="button" class="btn btn-sm" data-need="${esc(it.id)}">Need</button><button type="button" class="iconbtn" data-edititem="${esc(it.id)}" aria-label="Edit ${esc(it.item)}">✎</button></li>`).join('')}</ul>` : '<p class="empty">Nothing here yet. Items you have bought, and staples waiting to come round again, show up here.</p>'}</div>`;
+}
+
+/* ---------- render: jobs ---------- */
+function renderJobs() {
+  const jobs = D('Jobs'), t = todayIso(), horizon = addDays(t, 800);
+  const od = new Map(); jobsDue(jobs, D('Done'), t, addDays(t, 1), t).overdue.forEach(o => od.set(o.job.id, o.date));
+  const row = j => {
+    const next = isFloating(j) ? floatDue(j, t) : (od.has(j.id) ? od.get(j.id) : jobDates(j, t, horizon, jobs)[0]);
+    const st = j.active === false ? '' : od.has(j.id) || (isFloating(j) && next < t) ? '<span class="tag bad">Overdue</span>' : next === t ? '<span class="tag warn">Due</span>' : '<span class="tag good">OK</span>';
+    return `<div class="jrow"><div class="jmain"><button type="button" class="linkish" data-editjob="${esc(j.id)}">${esc(j.job)}</button><div class="sched">${esc(schedWords(j, jobs))}${j.mins ? ' · ' + j.mins + ' min' : ''}${j.active !== false && !isFloating(j) && String(j.missed).toLowerCase().startsWith('s') ? ' · skips if missed' : ''}</div></div>
+      <div class="jmeta"><span>Last: ${j.last ? esc(fdy(j.last)) : 'never'}</span><span>Next: ${next ? esc(fd(next)) : '–'}</span>${st}</div></div>`;
+  };
+  const active = jobs.filter(j => j.active !== false), paused = jobs.filter(j => j.active === false);
+  const areas = [...new Set(active.map(j => String(j.area || '').trim() || 'Other'))].sort((a, b) => a.localeCompare(b));
+  const starter = !jobs.length ? '<button type="button" class="btn" data-act="starter">Add starter jobs</button>' : '';
+  $('jobsBody').innerHTML = `<div class="panel"><div class="panel-head"><h2>Jobs</h2><div style="display:flex;gap:8px;flex-wrap:wrap">${starter}<button type="button" class="btn btn-primary" data-newjob>+ Job</button></div></div>
+    ${jobs.length ? areas.map(a => `<div class="agroup"><h3 class="ahead">${esc(a)}</h3>${active.filter(j => (String(j.area || '').trim() || 'Other') === a).sort((x, y) => x.job.localeCompare(y.job)).map(row).join('')}</div>`).join('')
+      : '<p class="empty">No jobs yet. Add the recurring jobs of the new place with + Job, or start from a sensible list with Add starter jobs.</p>'}
+    ${paused.length ? `<details class="paused"><summary>Paused (${paused.length})</summary>${paused.map(row).join('')}</details>` : ''}</div>`;
+}
+
+/* ---------- actions: ticking ---------- */
+async function tickJob(job, date) {
+  const t = todayIso(), fl = isFloating(job), last = fl ? t : (job.last && job.last > date ? job.last : date);
+  const ok = await withBusy('Saving…', async () => {
+    await assertRow('Jobs', job);
+    await addRows('Done', [{ date: t, for: date, kind: 'Job', ref: job.id, name: job.job, prev: job.last, void: false }]);
+    await updateRow('Jobs', { ...job, last });
+  });
+  if (ok) toast('Ticked ' + job.job, { label: 'Undo', fn: () => untick('Job', job.id, date) });
+}
+async function tickZone(zone, date) {
+  const t = todayIso();
+  const ok = await withBusy('Saving…', async () => {
+    await assertRow('Zones', zone);
+    await addRows('Done', [{ date: t, for: date, kind: 'Zone', ref: zone.id, name: zone.zone, prev: zone.last, void: false }]);
+    await updateRow('Zones', { ...zone, last: t });
+  });
+  if (ok) toast('Cleaned ' + zone.zone, { label: 'Undo', fn: () => untick('Zone', zone.id, date) });
+}
+/* Undo = Void the Done row and put the previous Last done / cleaned back (only if nothing newer was ticked since). */
+async function untick(kind, ref, date) {
+  const row = doneRow(kind, ref, date); if (!row) return;
+  const tab = kind === 'Job' ? 'Jobs' : 'Zones', target = D(tab).find(x => String(x.id) === String(ref));
+  const restore = !!target && !D('Done').some(x => !x.void && x.kind === kind && String(x.ref) === String(ref) && x.id > row.id);
+  await withBusy('Saving…', async () => {
+    await assertRow('Done', row);
+    if (restore) await assertRow(tab, target);
+    await updateRow('Done', { ...row, void: true });
+    if (restore) await updateRow(tab, { ...target, last: row.prev });
+  });
+}
+
+/* ---------- dialogs: zones ---------- */
+let editing = null;
+function openZone(z) {
+  editing = z || null;
+  $('zoneDlgTitle').textContent = z ? 'Edit zone' : 'New zone';
+  $('zName').value = z ? z.zone : ''; $('zOrder').value = z ? (z.order ?? '') : D('Zones').reduce((m, x) => Math.max(m, Number(x.order) || 0), 0) + 1;
+  $('zMins').value = z ? (z.mins ?? '') : setting('zone_minutes', 30); $('zList').value = z ? z.list : ''; $('zActive').checked = z ? z.active !== false : true;
+  $('zMsg').textContent = ''; $('zoneDlg').showModal(); setTimeout(() => $('zName').focus(), 30);
+}
+$('zoneForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('zName').value.trim(); if (!name) { $('zMsg').textContent = 'Give the zone a name.'; return; }
+  const ed = editing;
+  const f = { zone: name, order: $('zOrder').value === '' ? null : Number($('zOrder').value), mins: $('zMins').value === '' ? null : Number($('zMins').value), list: $('zList').value.replace(/\r/g, '').split('\n').map(x => x.trim()).filter(Boolean).join('\n'), active: $('zActive').checked };
+  $('zoneDlg').close();
+  await withBusy('Saving…', () => ed ? updateRow('Zones', { ...ed, ...f }) : addRows('Zones', [{ ...f, last: '' }]));
+});
+function openChecklist(z) {
+  if (!z) return;
+  $('clTitle').textContent = z.zone;
+  const items = String(z.list || '').split('\n').map(x => x.trim()).filter(Boolean);
+  $('clBody').innerHTML = items.length ? items.map(x => `<label><input type="checkbox"><span>${esc(x)}</span></label>`).join('') : '<p class="empty">No checklist yet. Press Edit zone to add one.</p>';
+  $('clEdit').onclick = () => { $('clDlg').close(); openZone(z); };
+  $('clDlg').showModal();
+}
+
+/* ---------- dialogs: groceries ---------- */
+function openItem(it) {
+  editing = it; $('gItem').value = it.item; $('gShop').value = ['Light', 'Heavy'].includes(it.shop) ? it.shop : 'Any'; $('gRestock').value = it.restock ?? ''; $('gNotes').value = it.notes || ''; $('gMsg').textContent = '';
+  $('itemDlg').showModal();
+}
+$('itemForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('gItem').value.trim(); if (!name) { $('gMsg').textContent = 'Give the item a name.'; return; }
+  const ed = editing, f = { item: name, shop: $('gShop').value, restock: $('gRestock').value === '' ? null : Number($('gRestock').value), notes: $('gNotes').value.trim() };
+  $('itemDlg').close();
+  await withBusy('Saving…', () => updateRow('Groceries', { ...ed, ...f }));
+});
+
+/* ---------- dialogs: jobs ---------- */
+const AREAS = ['Bins', 'Kitchen', 'Bathroom', 'Garden', 'Laundry', 'Maintenance', 'Admin'];
+function jobFromForm() {
+  const mode = $('jMode').value, linked = mode === 'Fixed' && $('jLink').value !== '';
+  return { job: $('jJob').value.trim(), area: $('jArea').value.trim(), mode,
+    every: linked || $('jEvery').value === '' ? null : Number($('jEvery').value), unit: linked ? '' : $('jUnit').value, anchor: linked ? '' : $('jAnchor').value,
+    day: $('jDay').value.trim(), link: mode === 'Fixed' ? $('jLink').value : '', mins: $('jMins').value === '' ? null : Number($('jMins').value),
+    missed: mode === 'Fixed' ? $('jMissed').value : '', active: $('jActive').checked, notes: $('jNotes').value.trim() };
+}
+function normDay(v) {
+  v = String(v || '').trim(); if (!v) return { ok: true, v: '' };
+  if (/^last$/i.test(v)) return { ok: true, v: 'last' };
+  if (/^\d+$/.test(v)) { const n = Number(v); return n >= 1 && n <= 31 ? { ok: true, v: String(n) } : { ok: false }; }
+  const i = dayIdx(v); return i >= 0 && /^[a-z]+$/i.test(v) ? { ok: true, v: DAYS[i] } : { ok: false };
+}
+function jobFormSync() {
+  const mode = $('jMode').value, fixed = mode === 'Fixed', linked = fixed && $('jLink').value !== '';
+  $('fLink').hidden = !fixed; $('fMissed').hidden = !fixed;
+  $('fEvery').hidden = $('fUnit').hidden = $('fAnchor').hidden = linked;
+  $('jAnchorLab').textContent = fixed ? 'Starts / first date' : 'First due (optional)';
+  $('jDayLab').textContent = fixed ? 'Day' : 'Preferred day';
+  jobPreview();
+}
+function jobPreview() {
+  const t = todayIso(), f = jobFromForm(), jobs = D('Jobs').filter(j => !editing || j.id !== editing.id), el = $('jPreview');
+  const tmp = { ...f, id: editing ? editing.id : -1, last: editing ? editing.last : '' }, dn = normDay(f.day);
+  if (!dn.ok) { el.textContent = ''; return; }
+  tmp.day = dn.v;
+  if (f.mode === 'Floating') { el.textContent = 'Next due: ' + fd(floatDue(tmp, t)) + (editing && editing.last ? '' : ' (then ' + schedWords(tmp, jobs) + ')'); return; }
+  if (!f.link && !f.anchor) { el.textContent = 'Pick a start date to see the next dates.'; return; }
+  const ds = jobDates(tmp, t, addDays(t, 1200), [...jobs, tmp]).slice(0, 3);
+  el.textContent = ds.length ? 'Next 3: ' + ds.map(fd).join(', ') : 'No upcoming dates. Check the start date and day.';
+}
+function openJob(j) {
+  editing = j || null; const jobs = D('Jobs');
+  $('jobDlgTitle').textContent = j ? 'Edit job' : 'New job';
+  const areas = [...new Set([...AREAS, ...jobs.map(x => String(x.area || '').trim()).filter(Boolean)])];
+  $('areaList').innerHTML = areas.map(a => `<option value="${esc(a)}">`).join('');
+  $('dayOpts').innerHTML = [...DAYS, 'last', ...Array.from({ length: 31 }, (_, i) => String(i + 1))].map(a => `<option value="${a}">`).join('');
+  $('jLink').innerHTML = '<option value="">No: runs on its own schedule</option>' + jobs.filter(x => !isFloating(x) && !String(x.link || '').trim() && (!j || x.id !== j.id)).map(x => `<option value="${esc(x.id)}">${esc(x.job)}</option>`).join('');
+  const d = j || { job: '', area: '', mode: 'Fixed', every: 1, unit: 'week', anchor: todayIso(), day: '', link: '', mins: '', missed: 'Roll', active: true, notes: '' };
+  $('jJob').value = d.job; $('jArea').value = d.area; $('jMode').value = isFloating(d) ? 'Floating' : 'Fixed'; $('jEvery').value = d.every ?? 1; $('jUnit').value = unitOf(d.unit ? d : { unit: 'week' });
+  $('jAnchor').value = d.anchor || ''; $('jDay').value = d.day; $('jLink').value = String(d.link || ''); $('jMins').value = d.mins ?? ''; $('jMissed').value = String(d.missed).toLowerCase().startsWith('s') ? 'Skip' : 'Roll';
+  $('jActive').checked = d.active !== false; $('jNotes').value = d.notes || ''; $('jMsg').textContent = '';
+  jobFormSync(); $('jobDlg').showModal(); setTimeout(() => $('jJob').focus(), 30);
+}
+['jJob', 'jArea', 'jMode', 'jLink', 'jEvery', 'jUnit', 'jAnchor', 'jDay', 'jMins', 'jMissed', 'jActive'].forEach(id => { $(id).addEventListener('input', jobFormSync); $(id).addEventListener('change', jobFormSync); });
+$('jobForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = jobFromForm(), dn = normDay(f.day), msg = m => { $('jMsg').textContent = m; };
+  if (!f.job) return msg('Give the job a name.');
+  if (!dn.ok) return msg('Day should be Mon to Sun, a number 1 to 31, or "last".');
+  f.day = dn.v;
+  if (f.mode === 'Fixed' && !f.link) { if (!f.anchor) return msg('Fixed jobs need a start date.'); if (!(f.every >= 1)) return msg('Every needs a number, 1 or more.'); }
+  if (f.mode === 'Floating' && !(f.every >= 1)) return msg('Every needs a number, 1 or more.');
+  const ed = editing; $('jobDlg').close();
+  await withBusy('Saving…', () => ed ? updateRow('Jobs', { ...ed, ...f }) : addRows('Jobs', [{ ...f, last: '' }]));
+});
+
+/* Starter jobs: previewed, confirmed, appended in one write, then read back and counted. */
+function starterJobs() {
+  const t = todayIso(), sun = nextDow(t, 6);
+  const fl = (job, area, n, unit, mins, off) => ({ job, area, mode: 'Floating', every: n, unit, anchor: addDays(t, off), day: '', link: '', mins, missed: 'Roll', last: '', active: true, notes: '' });
+  return [fl('Clean fridge', 'Kitchen', 30, 'day', 20, 2), fl('Wipe oven', 'Kitchen', 2, 'month', 30, 6), fl('Descale kettle', 'Kitchen', 3, 'month', 10, 10),
+    fl('Washing machine clean cycle', 'Laundry', 1, 'month', 10, 13), fl('Range hood filter', 'Kitchen', 3, 'month', 15, 17), fl('Clean windows', 'Maintenance', 6, 'month', 30, 21), fl('Test smoke alarms', 'Maintenance', 6, 'month', 10, 24),
+    { job: 'Change sheets', area: 'Laundry', mode: 'Fixed', every: 2, unit: 'week', anchor: sun, day: 'Sun', link: '', mins: 20, missed: 'Roll', last: '', active: true, notes: '' },
+    { job: 'Weekly reset', area: 'Admin', mode: 'Fixed', every: 1, unit: 'week', anchor: sun, day: 'Sun', link: '', mins: 15, missed: 'Roll', last: '', active: true, notes: '' }];
+}
+async function addStarter() {
+  const rows = starterJobs(), jobs = rows.slice();
+  const ok = await ask('Add starter jobs?', `<p style="margin:0 0 8px">These ${rows.length} jobs will be added to the Jobs tab. You can edit or pause any of them afterwards. Bins are left for you to add once the council dates are known.</p><ul class="plist">${rows.map(r => `<li>${esc(r.job)} <span class="muted">· ${esc(schedWords(r, jobs))}</span></li>`).join('')}</ul>`, 'Add jobs');
+  if (!ok) return;
+  const ready = await withBusy('Adding…', () => addRows('Jobs', rows));
+  if (ready && D('Jobs').length !== rows.length) notice(`Added ${rows.length} jobs but read back ${D('Jobs').length}. Check the Jobs tab in the sheet.`, 'error');
+  else if (ready) toast(`Added ${plural(rows.length, 'job')}`);
+}
+
+/* ---------- dialogs: settings ---------- */
+function openSettings(msg) {
+  const c = g.cfg(), live = state.live || state.demo;
+  $('sSheet').value = c.sheetId || ''; $('sClient').value = c.clientId || ''; $('setMsg').textContent = msg || '';
+  $('openSheet').hidden = !c.sheetId; $('openSheet').href = c.sheetId ? `https://docs.google.com/spreadsheets/d/${c.sheetId}/edit` : '#';
+  $('sVals').hidden = !live;
+  const dayOpts = (none) => (none ? '<option>None</option>' : '') + DAYS.map(d => `<option>${d}</option>`).join('');
+  $('sOffice').innerHTML = dayOpts(true); $('sWeekend').innerHTML = dayOpts(false);
+  const sel = (id, v, fallback) => { const el = $(id); el.value = v; if (el.value !== v) el.value = fallback; };
+  const od = dayIdx(setting('office_day', 'Thu')), wd = dayIdx(setting('weekend_shop_day', 'Sat'));
+  sel('sOffice', od >= 0 ? DAYS[od] : 'None', 'None'); sel('sWeekend', wd >= 0 ? DAYS[wd] : 'Sat', 'Sat');
+  $('sDelivery').value = isDelivery() ? 'yes' : 'no'; $('sZoneMins').value = setting('zone_minutes', 30); $('sCap').value = setting('daily_cap', 60);
+  const zd = zoneDays(); $('sZoneDays').innerHTML = DAYS.map((d, i) => `<label><input type="checkbox" data-zd="${i}" ${zd.includes(i) ? 'checked' : ''}> ${d}</label>`).join('');
+  $('setDlg').showModal();
+}
+$('setForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const raw = $('sSheet').value.trim(), m = raw.match(/\/d\/([\w-]{20,})/), id = m ? m[1] : raw, cl = $('sClient').value.trim();
+  if (id && !/^[\w-]{20,}$/.test(id)) { $('setMsg').textContent = 'That doesn\'t look like a sheet link or ID.'; return; }
+  if (cl && !/\.apps\.googleusercontent\.com$/.test(cl)) { $('setMsg').textContent = 'That doesn\'t look like a Client ID.'; return; }
+  const was = g.cfg(), changed = id !== (was.sheetId || '') || cl !== (was.clientId || '');
+  if (!state.demo && !id) { $('setMsg').textContent = 'Add the Google Sheet link or ID.'; return; }
+  const vals = { office_day: $('sOffice').value, weekend_shop_day: $('sWeekend').value, delivery: $('sDelivery').value, zone_days: DAYS.filter((d, i) => document.querySelector(`#sZoneDays [data-zd="${i}"]`).checked).join(', '), zone_minutes: $('sZoneMins').value, daily_cap: $('sCap').value };
+  $('setDlg').close();
+  g.saveCfg({ sheetId: id, clientId: cl });
+  if (changed && !state.demo) { g.client = null; state.live = false; state.data = emptyData(); connect(); return; }
+  if (!(state.live || state.demo)) { connect(); return; }
+  const cur = k => { const r = D('Settings').find(x => x.key === k); return r ? String(r.value) : null; };
+  const defOf = k => String(DEFAULT_SETTINGS.find(r => r[0] === k)[1]);
+  const todo = Object.entries(vals).filter(([k, v]) => String(v) !== (cur(k) ?? defOf(k)));
+  if (!todo.length) { renderAll(); return; }
+  await withBusy('Saving…', async () => {
+    for (const [k, v] of todo) {
+      const r = D('Settings').find(x => x.key === k);
+      if (r) await updateRow('Settings', { ...r, value: v });
+      else { const def = DEFAULT_SETTINGS.find(x => x[0] === k); await addRows('Settings', [{ key: k, value: v, notes: def ? def[2] : '' }]); }
+    }
+  });
+});
+$('signOut').addEventListener('click', () => { try { localStorage.removeItem(g.tokKey); } catch (e) {} $('setDlg').close(); signedOut(); });
+
+/* ---------- demo ---------- */
+function demoData() {
+  const t = todayIso(), mon = mondayOf(t), data = emptyData();
+  const add = (tab, arr) => { data[tab] = arr.map((o, i) => ({ _row: i + 2, ...o })); };
+  const J = (id, o) => ({ id, job: '', area: '', mode: 'Fixed', every: null, unit: '', anchor: '', day: '', link: '', mins: null, missed: 'Roll', last: '', active: true, notes: '', ...o });
+  const first = iso(new Date(fromIso(t).getFullYear(), fromIso(t).getMonth(), 1));
+  add('Jobs', [
+    J(1, { job: 'Green bin out', area: 'Bins', every: 2, unit: 'week', anchor: addDays(mon, 7), day: 'Mon', mins: 2 }),
+    J(2, { job: 'Yellow bin out', area: 'Bins', every: 2, unit: 'week', anchor: mon, day: 'Mon', mins: 2 }),
+    J(3, { job: 'Red bin out', area: 'Bins', every: 1, unit: 'week', anchor: addDays(mon, -7), day: 'Mon', mins: 2 }),
+    J(4, { job: 'Gardening', area: 'Garden', link: '1', day: 'Sat', missed: 'Skip', mins: 45 }),
+    J(5, { job: 'Clean fridge', area: 'Kitchen', mode: 'Floating', every: 30, unit: 'day', last: addDays(t, -40), mins: 20 }),
+    J(6, { job: 'Wipe oven', area: 'Kitchen', mode: 'Floating', every: 2, unit: 'month', last: addDays(t, -45), mins: 30 }),
+    J(7, { job: 'Descale kettle', area: 'Kitchen', mode: 'Floating', every: 3, unit: 'month', last: addDays(t, -70), mins: 10 }),
+    J(8, { job: 'Wash towels', area: 'Laundry', mode: 'Floating', every: 1, unit: 'week', last: addDays(t, -5), mins: 10 }),
+    J(9, { job: 'Change sheets', area: 'Laundry', every: 2, unit: 'week', anchor: addDays(mon, 6), day: 'Sun', mins: 20 }),
+    J(10, { job: 'Pay rent', area: 'Admin', every: 1, unit: 'month', anchor: first, mins: 5 }),
+    J(11, { job: 'Test smoke alarms', area: 'Maintenance', mode: 'Floating', every: 6, unit: 'month', last: addDays(t, -150), mins: 10 }),
+    J(12, { job: 'Weekly reset', area: 'Admin', every: 1, unit: 'week', anchor: addDays(mon, 6), day: 'Sun', mins: 15 })]);
+  const Z = (id, zone, order, last, list) => ({ id, zone, order, mins: 30, list, last, active: true });
+  add('Zones', [Z(1, 'Kitchen', 1, addDays(t, -9), 'Wipe benches\nClean stovetop\nWipe cupboard fronts\nMop floor'), Z(2, 'Bathroom', 2, addDays(t, -10), 'Scrub shower\nClean basin and taps\nClean toilet\nMop floor'),
+    Z(3, 'Lounge', 3, addDays(t, -6), 'Dust surfaces\nVacuum\nStraighten cushions'), Z(4, 'Bedroom', 4, addDays(t, -8), 'Dust surfaces\nVacuum under the bed\nWipe mirrors'), Z(5, 'Study', 5, '', 'Dust desk and shelves\nEmpty bin\nVacuum'),
+    Z(6, 'Laundry', 6, addDays(t, -14), 'Wipe machine and bench\nClean lint filter\nMop floor'), Z(7, 'Entry and hallway', 7, addDays(t, -3), 'Sweep\nWipe door handles\nMop floor'), Z(8, 'Spare room', 8, '', 'Dust\nVacuum')]);
+  const G = (id, item, shop, status, restock, last) => ({ id, item, shop, status, restock, last, notes: '' });
+  add('Groceries', [G(1, 'Milk', 'Light', 'Need', 5, addDays(t, -4)), G(2, 'Bread', 'Light', 'Need', 4, addDays(t, -3)), G(3, 'Bananas', 'Light', 'Need', null, ''), G(4, 'Eggs', 'Any', 'Need', null, ''),
+    G(5, 'Chicken thighs', 'Light', 'Need', null, ''), G(6, 'Laundry powder', 'Heavy', 'Need', null, ''), G(7, 'Rice 5kg', 'Heavy', 'Got', 60, addDays(t, -30)), G(8, 'Toilet paper', 'Heavy', 'Got', 21, addDays(t, -20)),
+    G(9, 'Coffee beans', 'Any', 'Got', 14, addDays(t, -15)), G(10, 'Yoghurt', 'Light', 'Got', 7, addDays(t, -2)), G(11, 'Olive oil', 'Heavy', 'Got', null, ''), G(12, 'Bin liners', 'Any', 'Got', 45, addDays(t, -20))]);
+  add('Settings', DEFAULT_SETTINGS.map(([key, value, notes]) => ({ key, value: String(value), notes })));
+  return data;
+}
+function startDemo() {
+  state.demo = true; state.live = true; state.data = demoData(); state.missing = [];
+  setGate(''); hideNotice(); $('demoBanner').hidden = false; $('refreshBtn').hidden = true; setStatus('live', 'Demo');
+  renderAll();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act],[data-goto],[data-zonelist],[data-editzone],[data-newzone],[data-editjob],[data-newjob],[data-edititem],[data-need]');
+  if (!el) return;
+  if (el.dataset.act) { const a = el.dataset.act; if (a === 'setup') setupSheet(); else if (a === 'connect') connect(); else if (a === 'settings') openSettings(); else if (a === 'demo') startDemo(); else if (a === 'starter') addStarter(); return; }
+  if (el.dataset.goto) { showTab(el.dataset.goto); window.scrollTo({ top: 0 }); return; }
+  if (el.dataset.zonelist) { openChecklist(D('Zones').find(z => String(z.id) === el.dataset.zonelist)); return; }
+  if (el.dataset.editzone) { openZone(D('Zones').find(z => String(z.id) === el.dataset.editzone)); return; }
+  if (el.hasAttribute('data-newzone')) { openZone(null); return; }
+  if (el.dataset.editjob) { openJob(D('Jobs').find(j => String(j.id) === el.dataset.editjob)); return; }
+  if (el.hasAttribute('data-newjob')) { openJob(null); return; }
+  if (el.dataset.edititem) { const it = D('Groceries').find(x => String(x.id) === el.dataset.edititem); if (it) openItem(it); return; }
+  if (el.dataset.need) { const it = D('Groceries').find(x => String(x.id) === el.dataset.need); if (it) await withBusy('Saving…', () => updateRow('Groceries', { ...it, status: 'Need' })); return; }
+});
+document.addEventListener('change', async e => {
+  const t = e.target;
+  if (t.dataset.job) {
+    const job = D('Jobs').find(j => String(j.id) === t.dataset.job); if (!job) return;
+    if (t.checked) await tickJob(job, t.dataset.date); else await untick('Job', job.id, t.dataset.date);
+  } else if (t.dataset.zone) {
+    const z = D('Zones').find(x => String(x.id) === t.dataset.zone); if (!z) return;
+    if (t.checked) await tickZone(z, t.dataset.date); else await untick('Zone', z.id, t.dataset.date);
+  } else if (t.dataset.bought) {
+    const it = D('Groceries').find(x => String(x.id) === t.dataset.bought);
+    if (it && await withBusy('Saving…', () => updateRow('Groceries', { ...it, status: 'Got', last: todayIso() }))) toast('Bought ' + it.item);
+  }
+});
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'quickAdd') return;
+  e.preventDefault();
+  const name = $('qaItem').value.trim(); if (!name) return;
+  const ex = D('Groceries').find(x => x.item.toLowerCase() === name.toLowerCase());
+  if (ex) { if (await withBusy('Saving…', () => updateRow('Groceries', { ...ex, status: 'Need' }))) toast(ex.item + ' is on the list'); return; }
+  await withBusy('Adding…', () => addRows('Groceries', [{ item: name, shop: $('qaShop').value, status: 'Need', restock: null, last: '', notes: '' }]));
+});
+function showTab(t) {
+  state.tab = t; document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  document.querySelectorAll('section[id^=v-]').forEach(s => { s.hidden = s.id !== 'v-' + t; });
+  try { localStorage.setItem('household-tab', t); } catch (e) {}
+}
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+const weekMove = n => { state.weekStart = addDays(state.weekStart || mondayOf(todayIso()), n); renderWeek(); };
+$('prevWk').addEventListener('click', () => weekMove(-7));
+$('nextWk').addEventListener('click', () => weekMove(7));
+$('todayBtn').addEventListener('click', () => { state.weekStart = mondayOf(todayIso()); renderWeek(); });
+$('settingsBtn').addEventListener('click', () => openSettings());
+$('exitDemo').addEventListener('click', e => { e.preventDefault(); location.href = location.pathname; });
+$('refreshBtn').addEventListener('click', () => state.live || g.valid() ? refresh() : connect());
+document.addEventListener('visibilitychange', () => { if (!document.hidden && state.live && !state.busy && !state.demo) refresh(); });
+setInterval(() => {
+  if (!state.live || state.busy || document.querySelector('dialog[open]')) return;
+  if (state.day !== todayIso()) { state.day = todayIso(); state.weekStart = mondayOf(state.day); }
+  renderAll();
+}, 60e3);
+
+/* ---------- boot ---------- */
+(async () => {
+  state.day = todayIso(); state.weekStart = mondayOf(state.day);
+  try { const t = localStorage.getItem('household-tab'); if (t && $('v-' + t)) showTab(t); } catch (e) {}
+  if (/[?&]demo(&|=|$)/.test(location.search)) { startDemo(); return; }
+  setStatus('loading', 'Connecting…');
+  loadGis().catch(() => {});
+  const c = g.cfg();
+  if (g.valid() && c.sheetId) { await refresh(); return; }
+  signedOut();
+})();
+</script>
+</body>
