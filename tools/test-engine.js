@@ -1,4 +1,9 @@
-const E = require('./engine.js'); let f = 0; const eq = (n, a, b) => { const ok = JSON.stringify(a) === JSON.stringify(b); if (!ok) f++; console.log((ok ? 'PASS ' : 'FAIL ') + n + (ok ? '' : ' got ' + JSON.stringify(a))); };
+// Reads the engine straight out of app.html (between ENGINE START / ENGINE END), so the tests check the code that ships.
+const fs = require('fs'), path = require('path');
+const html = fs.readFileSync(path.join(__dirname, '..', 'app.html'), 'utf8');
+const m = html.match(/\/\* ENGINE START \*\/([\s\S]*?)\/\* ENGINE END \*\//);
+if (!m) { console.log('FAIL engine markers not found in app.html'); process.exit(1); }
+const E = new Function(m[1] + '; return { fixedDates, jobDates, floatDue, jobsDue, zoneQueue, zonePlan, shops, shopFor, needed, addMonths, dow, addDays };')(); let f = 0; const eq = (n, a, b) => { const ok = JSON.stringify(a) === JSON.stringify(b); if (!ok) f++; console.log((ok ? 'PASS ' : 'FAIL ') + n + (ok ? '' : ' got ' + JSON.stringify(a))); };
 eq('fortnightly from anchor', E.fixedDates({ anchor: '2027-01-05', every: 2, unit: 'week' }, '2027-01-01', '2027-02-10'), ['2027-01-05', '2027-01-19', '2027-02-02']);
 eq('weekly day shifts anchor forward', E.fixedDates({ anchor: '2027-01-05', every: 1, unit: 'week', day: 'Sun' }, '2027-01-01', '2027-01-20'), ['2027-01-10', '2027-01-17']);
 eq('monthly 31 clamps', E.fixedDates({ anchor: '2027-01-31', every: 1, unit: 'month' }, '2027-01-01', '2027-04-30'), ['2027-01-31', '2027-02-28', '2027-03-31', '2027-04-30']);
